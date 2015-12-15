@@ -1,11 +1,9 @@
 function init () {
-	//document.getElementById("canvasSize").value = (window.innerHeight/(mapSize)*0.5);
 	canvasSize();
 	render();
 	drawAnimatedSprites();
 	setInterval(render, 1000/60)
-	//document.getElementById("loading").style.display = "none";
-};
+}
 
 function canvasSize () {
 	gridSize = Math.round(window.innerHeight/10);
@@ -15,7 +13,6 @@ function canvasSize () {
 	canvas.style.height = window.innerHeight + "px";
 	canvas.width = window.innerWidth;
 	canvas.height = window.innerHeight;
-
 	betaDraw.width = mapSize*gridSize;
 	betaDraw.height = mapSize*gridSize;
 	deltaDraw.width = window.innerWidth;
@@ -23,11 +20,9 @@ function canvasSize () {
 	gammaDraw.width = window.innerWidth;
 	gammaDraw.height = window.innerHeight;
 	drawBackground();
-	//window.requestAnimationFrame(drawForeground);
 	window.requestAnimationFrame(drawBackground);
-
 	canvasWidth = window.innerWidth;
-};
+}
 
 var powerLevels = [0,100,500,2000,3000,3500];
 
@@ -45,7 +40,7 @@ rightArrow.src = "img/right.png";
 softArray = [];
 for (var i = 0; i < 10; i++) {
 	softArray[i] = new Audio("sound/random/soft.wav");
-};
+}
 
 player = {
 	"x": 25,
@@ -54,7 +49,7 @@ player = {
 	"direction": "down",
 	"size": 1,
 	"angle": 180
-};
+}
 
 level = 0;
 mapSize = 65;
@@ -116,10 +111,22 @@ selected = "none";
 notStarted = true, inMenu = true, inGame = false, inCutscene = false;
 var lastLoop = new Date;
 function render () {
+	var win = true;
+	for (var i = 0; i < foreground.length; i++) {
+		if (foreground[i] != 0) win = false;
+	};
     var thisLoop = new Date;
     var fps = 1000 / (thisLoop - lastLoop);
     lastLoop = thisLoop;
-    if (inGame) {
+    if (win) {
+    	gammaContext.clearRect(0,0,window.innerWidth,window.innerHeight);
+		gammaContext.fillStyle = "black";
+    	gammaContext.fillRect(0,0,window.innerWidth,window.innerHeight);
+
+		gammaContext.fillStyle = "white";
+		gammaContext.font = "30px Arial";
+		gammaContext.fillText("You win",window.innerWidth/2,window.innerHeight/2);
+    } else if (inGame) {
 		var playersize = 0;//Math.round(player.size/200);
 		for (var i = 0; i < powerLevels.length; i++) {
 			if (player.size > powerLevels[i]) playersize = i+1;
@@ -275,7 +282,7 @@ function drawForeground () {
 					if (foreground[b + (i * mapSize)] == 1) {
 						if (foreground[b + ((i-1) * mapSize)] == 0 && foreground[(b-1) + (i * mapSize)] == 0 && foreground[(b+1) + (i * mapSize)] == 0 && foreground[b + ((i+1) * mapSize)] == 0) {
 							deltaContext.clearRect(x,y,gridSize,gridSize);
-							deltaContext.drawImage(images["img11"],x,y,gridSize,gridSize);
+							eatAtCoord(b,i);
 						}
 						else if (foreground[b + ((i-1) * mapSize)] == 0 && foreground[(b-1) + (i * mapSize)] == 0 && foreground[(b+1) + (i * mapSize)] == 0) {
 							deltaContext.clearRect(x,y,gridSize,gridSize);
@@ -513,17 +520,15 @@ function drawRotatedImage(context, image, x, y, width, height, angle) {
 	context.drawImage(image, Math.round(-(width/2)), Math.round(-(height/2)), Math.round(width), Math.round(height));
 	context.restore(); 
 }
+
 function levelUp () {
 	level++;
 	leveling = true;
-
 	foreground = levelOne();
-
 	for (var i = 0; i < foreground.length; i++) {
 		collision[i] = foreground[i]*2;
 	};
 
 	player.x = Math.round(mapSize/2);
 	player.y = Math.round(mapSize/2);
-	
 }
